@@ -2,7 +2,15 @@ import { Scene } from 'phaser';
 
 export class SimpleScene extends Scene {
     constructor() {
-        super();
+        super({
+            physics: {
+                default: 'arcade',
+                arcade: {
+                  gravity: { y: 30 },
+                  debug: false
+                }
+              },
+        });
 
         let gameOver = false;
         let cursors = null;
