@@ -1,6 +1,22 @@
 import { Scene } from 'phaser';
 
-export class SimpleScene extends Phaser.Scene {
+export class SimpleScene extends Scene {
+    constructor() {
+        super({
+            physics: {
+                default: 'arcade',
+                arcade: {
+                  gravity: { y: 30 },
+                  debug: false
+                }
+              },
+        });
+
+        let gameOver = false;
+        let cursors = null;
+        let player = null;
+        let score = 0;
+    }
    preload ()
   {
       this.load.image('sky', 'assets/sky.png');
@@ -16,7 +32,7 @@ export class SimpleScene extends Phaser.Scene {
       this.add.image(400, 300, 'sky');
   
       //  The platforms group contains the ground and the 2 ledges we can jump on
-      platforms = this.physics.add.staticGroup();
+      let platforms = this.physics.add.staticGroup();
   
       //  Here we create the ground.
       //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
@@ -28,11 +44,11 @@ export class SimpleScene extends Phaser.Scene {
       platforms.create(750, 220, 'ground');
   
       // The player and its settings
-      player = this.physics.add.sprite(100, 450, 'dude');
+      this.player = this.physics.add.sprite(100, 450, 'dude');
   
       //  Player physics properties. Give the little guy a slight bounce.
-      player.setBounce(0.2);
-      player.setCollideWorldBounds(true);
+      this.player.setBounce(0.2);
+      this.player.setCollideWorldBounds(true);
   
       //  Our player animations, turning, walking left and walking right.
       this.anims.create({
@@ -56,82 +72,82 @@ export class SimpleScene extends Phaser.Scene {
       });
   
       //  Input Events
-      cursors = this.input.keyboard.createCursorKeys();
+      this.cursors = this.input.keyboard.createCursorKeys();
   
       //  Some stars to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
-      stars = this.physics.add.group({
+      let stars = this.physics.add.group({
           key: 'star',
           repeat: 11,
           setXY: { x: 12, y: 0, stepX: 70 }
       });
   
-      stars.children.iterate( (child) {
+      stars.children.iterate( (child) => {
   
           //  Give each star a slightly different bounce
           child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
   
       });
   
-      bombs = this.physics.add.group();
+      let bombs = this.physics.add.group();
   
       //  The score
-      scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+      let scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
   
       //  Collide the player and the stars with the platforms
-      this.physics.add.collider(player, platforms);
+      this.physics.add.collider(this.player, platforms);
       this.physics.add.collider(stars, platforms);
       this.physics.add.collider(bombs, platforms);
   
       //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar 
-      this.physics.add.overlap(player, stars, collectStar, null, this);
+      this.physics.add.overlap(this.player, stars, this.collectStar, null, this);
   
-      this.physics.add.collider(player, bombs, hitBomb, null, this);
+      this.physics.add.collider(this.player, bombs, this.hitBomb, null, this);
   }
   
    update ()
   {
-      if (gameOver)
+      if (this.gameOver)
       {
           return;
       }
   
-      if (cursors.left.isDown)
+      if (this.cursors.left.isDown)
       {
-          player.setVelocityX(-160);
+          this.player.setVelocityX(-160);
   
-          player.anims.play('left', true);
+          this.player.anims.play('left', true);
       }
-      else if (cursors.right.isDown)
+      else if (this.cursors.right.isDown)
       {
-          player.setVelocityX(160);
+          this.player.setVelocityX(160);
   
-          player.anims.play('right', true);
+          this.player.anims.play('right', true);
       }
       else
       {
-          player.setVelocityX(0);
+          this.player.setVelocityX(0);
   
-          player.anims.play('turn');
+          this.player.anims.play('turn');
       }
-  
-      if (cursors.up.isDown && player.body.touching.down)
+
+      if (this.cursors.up.isDown && this.player.body.blocked.down)
       {
-          player.setVelocityY(-330);
+          this.player.setVelocityY(-330);
       }
   }
   
-   collectStar (player, star)
-  {
+    collectStar (player, star)
+    {
       star.disableBody(true, true);
   
       //  Add and update the score
-      score += 10;
-      scoreText.setText('Score: ' + score);
+      this.score += 10;
+      scoreText.setText('Score: ' + this.score);
   
       if (stars.countActive(true) === 0)
       {
           //  A new batch of stars to collect
-          stars.children.iterate( (child) {
+          stars.children.iterate( (child) => {
   
               child.enableBody(true, child.x, 0, true, true);
   
